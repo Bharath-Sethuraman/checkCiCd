@@ -26,10 +26,15 @@ const checkFunction = () => __awaiter(void 0, void 0, void 0, function* () {
         console.log("check Function");
         const joke = yield getJoke();
         console.log(joke);
-        return response = {
-            status: "Success",
-            msg: "Got Data"
-        };
+        if (typeof (joke) == "string") {
+            response = {
+                status: "Success",
+                msg: "Got Data",
+                data: [joke]
+            };
+        }
+        console.log(response);
+        return response;
     }
     catch (error) {
         console.error(error);
