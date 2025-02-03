@@ -20,6 +20,8 @@ const checkFunction = async () => {
         console.log(joke);
         console.log("new Data");
         console.log("Re-Check");
+        console.log("Once more");
+        
         
         
         if (typeof (joke) == "string") {
