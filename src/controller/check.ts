@@ -16,7 +16,8 @@ const checkFunction = async () => {
     }
     try {
         console.log("check Function");
-        const joke = await 1//getJoke();
+        const joke = await getJoke();
+        console.log(joke);
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
@@ -24,6 +25,8 @@ const checkFunction = async () => {
                 data: [joke]
             }
         }
+
+        console.log(response);
         return response
     } catch (error) {
         console.error(error);
