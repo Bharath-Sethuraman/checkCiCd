@@ -18,5 +18,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.1.2",
+    "discord-jokes": "^4.0.7",
+    "give-me-a-joke": "^0.5.1"
+  }
 }

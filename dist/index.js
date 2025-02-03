@@ -1,10 +1,7 @@
 "use strict";
-const checkFunction = () => {
-    try {
-        console.log("check Function");
-    }
-    catch (error) {
-        console.error(error);
-    }
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-checkFunction(); //recheck
+Object.defineProperty(exports, "__esModule", { value: true });
+const check_1 = __importDefault(require("./controller/check"));
+(0, check_1.default)();
