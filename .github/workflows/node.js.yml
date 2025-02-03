@@ -36,6 +36,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Configure Git user identity
+      - name: Set up Git identity
+        run: |
+          git config --global user.email "bharathsethuraman23@gmail.com"  # Replace with your email
+          git config --global user.name "Bharath-Sethuraman"  # Replace with your name
+
       # Create PR to main branch using GitHub CLI
       - name: Create Pull Request to main
         env:
