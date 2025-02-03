@@ -16,7 +16,7 @@ const checkFunction = async () => {
     }
     try {
         console.log("check Function");
-        const joke = await getJoke();
+        const joke = 1//await getJoke();
         console.log(joke);
         if (typeof (joke) == "string") {
             response = {
