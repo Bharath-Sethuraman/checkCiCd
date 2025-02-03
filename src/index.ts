@@ -1,1 +1,8 @@
-console.log("check");
+const checkFunction = () => {
+    try {
+        console.log("check Function");        
+    } catch (error) {
+        console.error(error);
+    }
+}
+checkFunction();
