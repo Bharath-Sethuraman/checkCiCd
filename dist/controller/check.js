@@ -25,7 +25,6 @@ const checkFunction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log("check Function");
         const joke = yield getJoke();
-        console.log(joke);
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
@@ -33,7 +32,6 @@ const checkFunction = () => __awaiter(void 0, void 0, void 0, function* () {
                 data: [joke]
             };
         }
-        console.log(response);
         return response;
     }
     catch (error) {

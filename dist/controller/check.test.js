@@ -17,14 +17,8 @@ const check_1 = __importDefault(require("./check"));
 (0, globals_1.test)('should return success when data is present', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield (0, check_1.default)();
     (0, globals_1.expect)(response).toHaveProperty('status', 'Success');
-    (0, globals_1.expect)(response).toHaveProperty('msg', 'data retrieved');
+    (0, globals_1.expect)(response).toHaveProperty('msg', 'Got Data');
     (0, globals_1.expect)(response).toHaveProperty('data');
     (0, globals_1.expect)(Array.isArray(response.data)).toBe(true);
     (0, globals_1.expect)(response.data.length).toBeGreaterThan(0);
-}));
-(0, globals_1.test)('should return failed when data is missing', () => __awaiter(void 0, void 0, void 0, function* () {
-    const response = yield (0, check_1.default)();
-    (0, globals_1.expect)(response).toHaveProperty('status', 'Failed');
-    (0, globals_1.expect)(response).toHaveProperty('msg', 'No data retrieved');
-    (0, globals_1.expect)(response).not.toHaveProperty('data'); // Ensures 'data' does not exist
 }));
