@@ -5,4 +5,4 @@ const checkFunction = () => {
         console.error(error);
     }
 }
-checkFunctin();//recheck
+checkFunction();//recheck
