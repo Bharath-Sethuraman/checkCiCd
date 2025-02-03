@@ -1,0 +1,17 @@
+{
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "name": "checkcicd",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "nodemon dist/index.js",
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
