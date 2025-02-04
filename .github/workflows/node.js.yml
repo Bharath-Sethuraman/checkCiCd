@@ -54,14 +54,21 @@ jobs:
         run: |
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-          # Check if a PR already exists
+          CHANGES=$(git rev-list --count origin/main..HEAD)
+
+          if [ "$CHANGES" -eq 0 ]; then
+            echo "No changes found between $CURRENT_BRANCH and main. Skipping PR creation."
+            exit 0
+          fi
+
           PR_EXISTS=$(gh pr list --base main --head "$CURRENT_BRANCH" --json number --jq '.[0].number')
 
           if [ -z "$PR_EXISTS" ]; then
             echo "No existing PR found. Creating a new one..."
+            git push origin "$CURRENT_BRANCH"  # Ensure branch is pushed before PR creation
             gh pr create --base main --head "$CURRENT_BRANCH" --title "Auto PR to main" --body "This is an automated PR to the main branch."
           else
-            echo "A PR for branch '$CURRENT_BRANCH' already exists: https://github.com/${{ github.repository }}/pull/$PR_EXISTS"
+          echo "A PR for branch '$CURRENT_BRANCH' already exists: https://github.com/${{ github.repository }}/pull/$PR_EXISTS"
             echo "Pushing new changes to update the existing PR..."
             git push origin "$CURRENT_BRANCH"
           fi
