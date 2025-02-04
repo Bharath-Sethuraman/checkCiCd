@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Auto PR & Merge with CI/CD
 
 on:
   push:
@@ -8,29 +8,11 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write  # To allow actions to perform CI/CD steps
 
 jobs:
-  ci:
+  auto-pr-merge:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-  auto-pr:
-    runs-on: ubuntu-latest
-    needs: ci
 
     steps:
       - name: Checkout code
@@ -44,11 +26,6 @@ jobs:
         id: check-pr
         run: |
           PR_NUMBER=$(gh pr list --base main --head "$BRANCH_NAME" --json number --jq '.[0].number' || echo "")
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No existing PR found for branch $BRANCH_NAME."
-          else
-            echo "Existing PR number: $PR_NUMBER"
-          fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,7 +33,6 @@ jobs:
       - name: Create or Update PR
         if: env.PR_NUMBER == ''
         run: |
-          echo "Creating a new PR for branch $BRANCH_NAME"
           gh pr create --base main --head "$BRANCH_NAME" --title "Auto PR: $BRANCH_NAME" --body "This is an auto-created PR."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -64,7 +40,54 @@ jobs:
       - name: Update existing PR
         if: env.PR_NUMBER != ''
         run: |
-          echo "Updating existing PR: $PR_NUMBER"
           gh pr comment "$PR_NUMBER" --body "New changes pushed to branch $BRANCH_NAME."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable Auto-Merge
+        run: gh pr merge --auto --squash "$PR_NUMBER"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ci:
+    runs-on: ubuntu-latest
+    needs: auto-pr-merge # Ensure this runs after PR is created
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
+
+  cd:
+    runs-on: ubuntu-latest
+    needs: ci # Ensure this runs after CI job passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to production (or staging)
+        run: |
+          echo "Deploying to production..."
+          # Add your deployment script here (e.g., SSH, Heroku, AWS, etc.)
