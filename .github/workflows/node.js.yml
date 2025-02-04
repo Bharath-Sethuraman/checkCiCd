@@ -39,6 +39,8 @@ jobs:
         run: |
               git branch -r
               gh pr list --state open --base main --json number
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Debug PR Data
         run: |
