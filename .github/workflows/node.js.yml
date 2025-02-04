@@ -34,10 +34,12 @@ jobs:
       - name: Create Pull Request to Main
         id: create-pr
         run: |
-          PR_URL=$(gh pr create --base main --head "${GITHUB_REF#refs/heads/}" --title "Auto PR from ${GITHUB_REF#refs/heads/}" --body "This is an automated PR." --json url -q ".url")
+          PR_URL=$(gh pr create --base main --head "${GITHUB_REF#refs/heads/}" --title "Auto PR from ${GITHUB_REF#refs/heads/}" --body "This is an automated PR." --web)
           echo "PR created: $PR_URL"
+          echo "::set-output name=pr_url::$PR_URL"
 
       - name: Merge PR
         run: |
-          echo "Merging PR ${{ steps.create-pr.outputs.PR_URL }} into main..."
-          gh pr merge "${{ steps.create-pr.outputs.PR_URL }}" --merge --auto
+          PR_URL="${{ steps.create-pr.outputs.pr_url }}"
+          echo "Merging PR $PR_URL into main..."
+          gh pr merge "$PR_URL" --merge --auto
