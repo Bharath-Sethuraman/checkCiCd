@@ -4,4 +4,5 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const check_1 = __importDefault(require("./controller/check"));
+console.log("CHeck123");
 (0, check_1.default)();
