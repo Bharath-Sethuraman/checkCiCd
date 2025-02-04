@@ -30,19 +30,13 @@ jobs:
         run: |
           echo '${{ steps.list-prs.outputs.data }}' | jq -c '.[] | select(.base.ref=="main")' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
-            echo "Enabling Auto-Merge for PR #$pr_number..."
-            gh pr merge $pr_number --auto --merge
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Merge PRs
-        if: ${{ steps.list-prs.outputs.data != '[]' }}
-        run: |
-          echo '${{ steps.list-prs.outputs.data }}' | jq -c '.[] | select(.base.ref=="main")' | while read -r pr; do
-            pr_number=$(echo "$pr" | jq -r '.number')
-            echo "Merging PR #$pr_number into main..."
-            gh pr merge $pr_number --merge
+            mergeable=$(echo "$pr" | jq -r '.mergeable')
+            if [ "$mergeable" == "true" ]; then
+              echo "Enabling Auto-Merge for PR #$pr_number..."
+              gh pr merge $pr_number --auto --merge
+            else
+              echo "⚠️ PR #$pr_number has conflicts. Cannot enable auto-merge."
+            fi
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
