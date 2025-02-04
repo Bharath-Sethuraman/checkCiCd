@@ -1,4 +1,4 @@
-name: Auto PR & Merge
+name: Auto PR & Merge with CI/CD
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write  # To allow actions to perform CI/CD steps
 
 jobs:
   auto-pr-merge:
@@ -36,27 +37,57 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Wait for PR approval
+      - name: Update existing PR
         if: env.PR_NUMBER != ''
         run: |
-          echo "Waiting for PR approval before merging..."
-          gh pr review "$PR_NUMBER" --approve
+          gh pr comment "$PR_NUMBER" --body "New changes pushed to branch $BRANCH_NAME."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure All Checks Passed
-        if: env.PR_NUMBER != ''
-        run: |
-          echo "Waiting for all checks to pass before merging..."
-          # Check if status checks have passed
-          gh pr checks "$PR_NUMBER" --status=success
+      - name: Enable Auto-Merge
+        run: gh pr merge --auto --squash "$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge PR
-        if: env.PR_NUMBER != ''
+  ci:
+    runs-on: ubuntu-latest
+    needs: auto-pr-merge # Ensure this runs after PR is created
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        run: npm run build --if-present
+
+      - name: Run tests
+        run: npm test
+
+  cd:
+    runs-on: ubuntu-latest
+    needs: ci # Ensure this runs after CI job passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to production (or staging)
         run: |
-          echo "Merging PR $PR_NUMBER..."
-          gh pr merge "$PR_NUMBER" --squash --delete-branch --auto
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "Deploying to production..."
+          # Add your deployment script here (e.g., SSH, Heroku, AWS, etc.)
