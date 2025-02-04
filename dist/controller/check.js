@@ -24,8 +24,11 @@ const checkFunction = () => __awaiter(void 0, void 0, void 0, function* () {
     };
     try {
         console.log("check Function");
-        const joke = 1; //await getJoke();
+        const joke = yield getJoke();
         console.log(joke);
+        console.log("new Data");
+        console.log("Re-Check");
+        console.log("Once more");
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
