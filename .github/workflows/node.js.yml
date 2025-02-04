@@ -1,16 +1,16 @@
-name: Auto Merge PRs to Main
+name: Auto Create and Merge PR to Main
 
 on:
   push:
     branches:
-      - '**'  # Triggers on push to any branch
+      - '**'  # Trigger for all branches
 
 permissions:
   pull-requests: write
   contents: write
 
 jobs:
-  auto-pr-merge:
+  auto-create-and-merge-pr:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,40 +24,20 @@ jobs:
         run: |
           echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
 
-      - name: Get open PRs targeting main
-        id: list-prs
+      - name: Check if the branch is `main`
         run: |
-          PR_LIST=$(gh pr list --state open --base main --json number,mergeable)
-          echo "pr_data=$PR_LIST" >> $GITHUB_OUTPUT
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "Running on main, skipping PR creation."
+            exit 0
+          fi
 
-      - name: Debug PR Data
+      - name: Create Pull Request to Main
+        id: create-pr
         run: |
-          echo "PR List: ${{ steps.list-prs.outputs.pr_data }}"
+          PR_URL=$(gh pr create --base main --head "${GITHUB_REF#refs/heads/}" --title "Auto PR from ${GITHUB_REF#refs/heads/}" --body "This is an automated PR." --json url -q ".url")
+          echo "PR created: $PR_URL"
 
-      - name: Enable Auto-Merge for PRs
-        if: ${{ steps.list-prs.outputs.pr_data != '[]' }}
+      - name: Merge PR
         run: |
-          echo "${{ steps.list-prs.outputs.pr_data }}" | jq -c '.[]' | while read -r pr; do
-            pr_number=$(echo "$pr" | jq -r '.number')
-            mergeable=$(echo "$pr" | jq -r '.mergeable')
-            if [ "$mergeable" == "MERGEABLE" ]; then
-              echo "Enabling Auto-Merge for PR #$pr_number..."
-              gh pr merge "$pr_number" --auto --merge
-            else
-              echo "PR #$pr_number is not mergeable (status: $mergeable). Skipping..."
-            fi
-          done
-
-      - name: Merge PRs
-        if: ${{ steps.list-prs.outputs.pr_data != '[]' }}
-        run: |
-          echo "${{ steps.list-prs.outputs.pr_data }}" | jq -c '.[]' | while read -r pr; do
-            pr_number=$(echo "$pr" | jq -r '.number')
-            mergeable=$(echo "$pr" | jq -r '.mergeable')
-            if [ "$mergeable" == "MERGEABLE" ]; then
-              echo "Merging PR #$pr_number into main..."
-              gh pr merge "$pr_number" --merge
-            else
-              echo "PR #$pr_number is not mergeable (status: $mergeable). Skipping..."
-            fi
-          done
+          echo "Merging PR ${{ steps.create-pr.outputs.PR_URL }} into main..."
+          gh pr merge "${{ steps.create-pr.outputs.PR_URL }}" --merge --auto
