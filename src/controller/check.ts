@@ -21,6 +21,7 @@ const checkFunction = async () => {
         console.log("Fixed2");
         console.log("Fixed3");
         console.log("Check Fixed");
+        console.log("Check Fixed2");
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
