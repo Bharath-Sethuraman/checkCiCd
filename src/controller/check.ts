@@ -22,6 +22,8 @@ const checkFunction = async () => {
         console.log("Re-Check");
         console.log("Once more");
         console.log("Re-check");
+        console.log("Finally");
+        
         
         
         
