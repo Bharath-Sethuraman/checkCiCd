@@ -7,6 +7,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,13 +43,11 @@ jobs:
         run: |
           git config --global user.email "bharathsethuraman23@gmail.com"  # Replace with your email
           git config --global user.name "Bharath-Sethuraman"  # Replace with your name
-
       - name: Install GitHub CLI
         run: |
           sudo apt update
           sudo apt install -y gh
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-
       - name: Create Pull Request to main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
