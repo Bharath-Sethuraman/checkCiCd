@@ -8,6 +8,8 @@ function getJoke() {
         });
     });
 }
+console.log("check");
+
 
 const checkFunction = async () => {
     let response: any = {
