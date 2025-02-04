@@ -43,12 +43,30 @@ jobs:
         run: |
           git config --local user.email "bharathsethuraman23@gmail.com"  # Replace with your email
           git config --local user.name "Bharath-Sethuraman"  # Replace with your name
+
       - name: Install GitHub CLI
         run: |
           sudo apt update
           sudo apt install -y gh
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Check for existing PR
+        id: check-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          PR_EXISTS=$(gh pr list --base main --head "$CURRENT_BRANCH" --json number --jq 'length')
+          if [ "$PR_EXISTS" -gt 0 ]; then
+            echo "PR already exists for branch $CURRENT_BRANCH"
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "No PR exists for branch $CURRENT_BRANCH"
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create Pull Request to main
+        if: steps.check-pr.outputs.pr_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
