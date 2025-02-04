@@ -20,6 +20,7 @@ const checkFunction = async () => {
         console.log(joke);
         console.log("Fixed2");
         console.log("Fixed2");
+        console.log("Check Fixed");
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
