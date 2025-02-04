@@ -3,7 +3,7 @@ name: Auto Merge PRs to Main
 on:
   push:
     branches:
-      - '**'  # Triggers on push to any branch
+      - '**'
 
 permissions:
   pull-requests: write
@@ -22,17 +22,16 @@ jobs:
         run: |
           PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                           https://api.github.com/repos/${{ github.repository }}/pulls?state=open&base=main)
-          # Ensure the PR_DATA is passed in one line format for environment variable
-          echo "PR_LIST=$(echo $PR_DATA | jq -c .)" >> $GITHUB_ENV
+          echo "::set-output name=pr_data::$PR_DATA"
 
-      - name: Debug PR Data (Raw)
+      - name: Debug PR Data
         run: |
-          echo "Raw PR List: ${{ env.PR_LIST }}"
+          echo "Raw PR List: ${{ steps.list-prs.outputs.pr_data }}"
 
       - name: Enable Auto-Merge for PRs
-        if: ${{ env.PR_LIST != '[]' }}
+        if: ${{ steps.list-prs.outputs.pr_data != '[]' }}
         run: |
-          echo "${{ env.PR_LIST }}" | jq -c '.[]' | while read -r pr; do
+          echo "${{ steps.list-prs.outputs.pr_data }}" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Enabling Auto-Merge for PR #$pr_number..."
             curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -41,9 +40,9 @@ jobs:
           done
 
       - name: Merge PRs
-        if: ${{ env.PR_LIST != '[]' }}
+        if: ${{ steps.list-prs.outputs.pr_data != '[]' }}
         run: |
-          echo "${{ env.PR_LIST }}" | jq -c '.[]' | while read -r pr; do
+          echo "${{ steps.list-prs.outputs.pr_data }}" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Merging PR #$pr_number into main..."
             curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
