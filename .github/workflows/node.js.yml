@@ -35,7 +35,10 @@ jobs:
             echo "data=$PR_LIST" >> $GITHUB_ENV
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+      - name: List all branches
+        run: |
+              git branch -r
+              gh pr list --state open --base main --json number
 
       - name: Debug PR Data
         run: |
