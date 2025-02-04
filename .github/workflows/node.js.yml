@@ -43,32 +43,42 @@ jobs:
         run: |
           git config --local user.email "bharathsethuraman23@gmail.com"  # Replace with your email
           git config --local user.name "Bharath-Sethuraman"  # Replace with your name
+
       - name: Install GitHub CLI
         run: |
           sudo apt update
           sudo apt install -y gh
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-      - name: Create Pull Request to main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current branch name
+        id: get-branch
         run: |
           CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "CURRENT_BRANCH: $CURRENT_BRANCH"
+          echo "CURRENT_BRANCH=$CURRENT_BRANCH" >> $GITHUB_OUTPUT
 
-          CHANGES=$(git rev-list --count origin/main..HEAD)
-
-          if [ "$CHANGES" -eq 0 ]; then
-            echo "No changes found between $CURRENT_BRANCH and main. Skipping PR creation."
-            exit 0
-          fi
-
-          PR_EXISTS=$(gh pr list --base main --head "$CURRENT_BRANCH" --json number --jq '.[0].number')
-
-          if [ -z "$PR_EXISTS" ]; then
-            echo "No existing PR found. Creating a new one..."
-            git push origin "$CURRENT_BRANCH"  # Ensure branch is pushed before PR creation
-            gh pr create --base main --head "$CURRENT_BRANCH" --title "Auto PR to main" --body "This is an automated PR to the main branch."
+      - name: Check for existing PR
+        id: check-pr
+        run: |
+          PR_EXISTS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ steps.get-branch.outputs.CURRENT_BRANCH }}&base=main" \
+            | jq '.[0].number')
+          echo "PR_EXISTS: $PR_EXISTS"
+          if [ -z "$PR_EXISTS" ] || [ "$PR_EXISTS" == "null" ]; then
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
           else
-          echo "A PR for branch '$CURRENT_BRANCH' already exists: https://github.com/${{ github.repository }}/pull/$PR_EXISTS"
-            echo "Pushing new changes to update the existing PR..."
-            git push origin "$CURRENT_BRANCH"
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$PR_EXISTS" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create or Update PR
+        if: steps.check-pr.outputs.pr_exists == 'false'
+        run: |
+          gh pr create --base main --head "${{ steps.get-branch.outputs.CURRENT_BRANCH }}" \
+            --title "Auto PR to main" --body "This is an automated PR to the main branch."
+
+      - name: Update existing PR
+        if: steps.check-pr.outputs.pr_exists == 'true'
+        run: |
+          echo "Updating existing PR: https://github.com/${{ github.repository }}/pull/${{ steps.check-pr.outputs.pr_number }}"
+          git push origin "${{ steps.get-branch.outputs.CURRENT_BRANCH }}"
