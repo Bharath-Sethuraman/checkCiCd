@@ -19,7 +19,7 @@ const checkFunction = async () => {
         const joke = await getJoke();
         console.log(joke);
         console.log("Fixed2");
-        console.log("Fixed4");
+        console.log("Fixed444444");
         console.log("Check Fixed");
         if (typeof (joke) == "string") {
             response = {
