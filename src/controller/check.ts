@@ -19,13 +19,10 @@ const checkFunction = async () => {
         const joke = await getJoke();
         console.log(joke);
         console.log("new Data");
-<<<<<<< HEAD
-=======
         console.log("Re-Check");
         console.log("Once more");
         
         
->>>>>>> 0acb7df986dc07c24757d9807589f4f595639105
         
         if (typeof (joke) == "string") {
             response = {
