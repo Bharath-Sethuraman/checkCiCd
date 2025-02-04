@@ -24,7 +24,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "$GH_TOKEN" | gh auth login --with-token
+          echo "$GH_TOKEN" > token.txt
+          gh auth login --with-token < token.txt
+          rm token.txt
 
       - name: Get open PRs targeting main
         id: list-prs
