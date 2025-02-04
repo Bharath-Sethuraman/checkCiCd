@@ -27,6 +27,15 @@ jobs:
           echo "data=$PR_DATA" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Debug PR Data (Raw)
+        run: |
+            PR_LIST=$(gh pr list --state open --base main --json number)
+            echo "Raw PR List: $PR_LIST"
+            echo "data=$PR_LIST" >> $GITHUB_ENV
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
 
       - name: Debug PR Data
         run: |
