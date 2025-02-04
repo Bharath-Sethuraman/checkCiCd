@@ -25,6 +25,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debug PR Data
+        run: echo '${{ steps.list-prs.outputs.data }}'
+
       - name: Enable Auto-Merge for PRs
         if: ${{ steps.list-prs.outputs.data != '[]' }}
         run: |
