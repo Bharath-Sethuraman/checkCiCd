@@ -25,6 +25,8 @@ jobs:
         run: |
           PR_LIST=$(gh pr list --state open --base main --json number)
           echo "::set-output name=pr_data::$PR_LIST"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Debug PR Data
         run: |
