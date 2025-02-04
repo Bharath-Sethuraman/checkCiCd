@@ -17,57 +17,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install GitHub CLI
-        run: sudo apt-get install gh
-
       - name: Get open PRs targeting main
         id: list-prs
         run: |
-          PR_DATA=$(gh pr list --state open --base main --json number)
+          PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                          https://api.github.com/repos/${{ github.repository }}/pulls?state=open&base=main)
           echo "data=$PR_DATA" >> $GITHUB_ENV
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Debug PR Data (Raw)
         run: |
-            PR_LIST=$(gh pr list --state open --base main --json number)
-            echo "Raw PR List: $PR_LIST"
-            echo "data=$PR_LIST" >> $GITHUB_ENV
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: List all branches
-        run: |
-              git branch -r
-              gh pr list --state open --base main --json number
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Debug PR Data
-        run: |
-          echo "Open PRs: $data"
-        env:
-          data: ${{ env.data }}
+          echo "Raw PR List: ${{ env.data }}"
 
       - name: Enable Auto-Merge for PRs
         if: ${{ env.data != '[]' }}
         run: |
-          echo "$data" | jq -c '.[]' | while read -r pr; do
+          echo "${{ env.data }}" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Enabling Auto-Merge for PR #$pr_number..."
-            gh pr merge $pr_number --auto --merge
+            curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -d '{"merge_method": "merge"}' \
+                 "https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number/merge"
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          data: ${{ env.data }}
 
       - name: Merge PRs
         if: ${{ env.data != '[]' }}
         run: |
-          echo "$data" | jq -c '.[]' | while read -r pr; do
+          echo "${{ env.data }}" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Merging PR #$pr_number into main..."
-            gh pr merge $pr_number --merge
+            curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -d '{"merge_method": "merge"}' \
+                 "https://api.github.com/repos/${{ github.repository }}/pulls/$pr_number/merge"
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          data: ${{ env.data }}
