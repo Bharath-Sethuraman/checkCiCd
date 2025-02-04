@@ -8,7 +8,7 @@ function getJoke() {
         });
     });
 }
-console.log("checkkkkk");
+console.log("chh");
 
 
 const checkFunction = async () => {
