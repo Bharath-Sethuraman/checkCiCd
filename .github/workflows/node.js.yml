@@ -50,23 +50,25 @@ jobs:
           sudo apt install -y gh
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Check for existing PR
-        id: check-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Debug branch information
         run: |
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          PR_EXISTS=$(gh pr list --base main --head "$CURRENT_BRANCH" --json number --jq 'length')
-          if [ "$PR_EXISTS" -gt 0 ]; then
-            echo "PR already exists for branch $CURRENT_BRANCH"
-            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Commit difference with main:"
+          git log main..HEAD --oneline
+
+      - name: Check for new commits
+        id: check-commits
+        run: |
+          if [ -z "$(git log main..HEAD --oneline)" ]; then
+            echo "No new commits compared to main"
+            echo "has_new_commits=false" >> $GITHUB_OUTPUT
           else
-            echo "No PR exists for branch $CURRENT_BRANCH"
-            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "New commits found compared to main"
+            echo "has_new_commits=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Pull Request to main
-        if: steps.check-pr.outputs.pr_exists == 'false'
+        if: steps.check-commits.outputs.has_new_commits == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
