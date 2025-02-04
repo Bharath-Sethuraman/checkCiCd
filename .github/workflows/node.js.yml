@@ -22,16 +22,17 @@ jobs:
         run: |
           PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                           https://api.github.com/repos/${{ github.repository }}/pulls?state=open&base=main)
+          # Ensure the PR_DATA is passed in one line format for environment variable
           echo "PR_LIST=$PR_DATA" >> $GITHUB_ENV
 
       - name: Debug PR Data (Raw)
         run: |
-          echo "Raw PR List: ${{ env.PR_LIST }}"
+          echo "Raw PR List: $PR_LIST"
 
       - name: Enable Auto-Merge for PRs
-        if: ${{ env.PR_LIST != '[]' }}
+        if: ${{ steps.list-prs.outputs.PR_LIST != '[]' }}
         run: |
-          echo "${{ env.PR_LIST }}" | jq -c '.[]' | while read -r pr; do
+          echo "$PR_LIST" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Enabling Auto-Merge for PR #$pr_number..."
             curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -40,9 +41,9 @@ jobs:
           done
 
       - name: Merge PRs
-        if: ${{ env.PR_LIST != '[]' }}
+        if: ${{ steps.list-prs.outputs.PR_LIST != '[]' }}
         run: |
-          echo "${{ env.PR_LIST }}" | jq -c '.[]' | while read -r pr; do
+          echo "$PR_LIST" | jq -c '.[]' | while read -r pr; do
             pr_number=$(echo "$pr" | jq -r '.number')
             echo "Merging PR #$pr_number into main..."
             curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
