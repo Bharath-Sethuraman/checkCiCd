@@ -41,8 +41,8 @@ jobs:
 
       - name: Set up Git identity
         run: |
-          git config --global user.email "bharathsethuraman23@gmail.com"  # Replace with your email
-          git config --global user.name "Bharath-Sethuraman"  # Replace with your name
+          git config user.email "bharathsethuraman23@gmail.com"  # Replace with your email
+          git config user.name "Bharath-Sethuraman"  # Replace with your name
       - name: Install GitHub CLI
         run: |
           sudo apt update
