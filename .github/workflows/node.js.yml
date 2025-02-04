@@ -3,7 +3,7 @@ name: Auto Merge PRs to Main
 on:
   push:
     branches:
-      - '**'
+      - '**'  # Triggers on push to any branch
 
 permissions:
   pull-requests: write
@@ -20,13 +20,15 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
 
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+
       - name: Get open PRs targeting main
         id: list-prs
         run: |
           PR_LIST=$(gh pr list --state open --base main --json number,mergeable)
           echo "pr_data=$PR_LIST" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ github.token }}
 
       - name: Debug PR Data
         run: |
