@@ -20,21 +20,11 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Authenticate GitHub CLI
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "$GH_TOKEN" > token.txt
-          gh auth login --with-token < token.txt
-          rm token.txt
-
       - name: Get open PRs targeting main
         id: list-prs
         run: |
-          PR_LIST=$(gh pr list --state open --base main --json number,mergeable)
+          PR_LIST=$(gh pr list --state open --base main --json number,mergeable --token ${{ github.token }})
           echo "pr_data=$PR_LIST" >> $GITHUB_OUTPUT
-        env:
-          GH_TOKEN: ${{ github.token }}
 
       - name: Debug PR Data
         run: |
@@ -48,7 +38,7 @@ jobs:
             mergeable=$(echo "$pr" | jq -r '.mergeable')
             if [ "$mergeable" == "MERGEABLE" ]; then
               echo "Enabling Auto-Merge for PR #$pr_number..."
-              gh pr merge "$pr_number" --auto --merge
+              gh pr merge "$pr_number" --auto --merge --token ${{ github.token }}
             else
               echo "PR #$pr_number is not mergeable (status: $mergeable). Skipping..."
             fi
@@ -62,7 +52,7 @@ jobs:
             mergeable=$(echo "$pr" | jq -r '.mergeable')
             if [ "$mergeable" == "MERGEABLE" ]; then
               echo "Merging PR #$pr_number into main..."
-              gh pr merge "$pr_number" --merge
+              gh pr merge "$pr_number" --merge --token ${{ github.token }}
             else
               echo "PR #$pr_number is not mergeable (status: $mergeable). Skipping..."
             fi
