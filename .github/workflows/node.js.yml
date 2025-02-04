@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Auto PR & Merge
 
 on:
   push:
@@ -10,27 +10,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  ci:
+  auto-pr-merge:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-  auto-pr:
-    runs-on: ubuntu-latest
-    needs: ci
 
     steps:
       - name: Checkout code
@@ -44,11 +25,6 @@ jobs:
         id: check-pr
         run: |
           PR_NUMBER=$(gh pr list --base main --head "$BRANCH_NAME" --json number --jq '.[0].number' || echo "")
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No existing PR found for branch $BRANCH_NAME."
-          else
-            echo "Existing PR number: $PR_NUMBER"
-          fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,15 +32,31 @@ jobs:
       - name: Create or Update PR
         if: env.PR_NUMBER == ''
         run: |
-          echo "Creating a new PR for branch $BRANCH_NAME"
           gh pr create --base main --head "$BRANCH_NAME" --title "Auto PR: $BRANCH_NAME" --body "This is an auto-created PR."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update existing PR
+      - name: Wait for PR approval
         if: env.PR_NUMBER != ''
         run: |
-          echo "Updating existing PR: $PR_NUMBER"
-          gh pr comment "$PR_NUMBER" --body "New changes pushed to branch $BRANCH_NAME."
+          echo "Waiting for PR approval before merging..."
+          gh pr review "$PR_NUMBER" --approve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure All Checks Passed
+        if: env.PR_NUMBER != ''
+        run: |
+          echo "Waiting for all checks to pass before merging..."
+          # Check if status checks have passed
+          gh pr checks "$PR_NUMBER" --status=success
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge PR
+        if: env.PR_NUMBER != ''
+        run: |
+          echo "Merging PR $PR_NUMBER..."
+          gh pr merge "$PR_NUMBER" --squash --delete-branch --auto
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
