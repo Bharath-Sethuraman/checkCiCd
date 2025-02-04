@@ -18,11 +18,8 @@ const checkFunction = async () => {
         console.log("check Function");
         const joke = await getJoke();
         console.log(joke);
-        console.log("new Data");
-        console.log("Re-Check");
-        console.log("Once more");
-        console.log("Re-check");
-        console.log("Finally");
+        console.log("Fixed2");
+        
         
         
         
