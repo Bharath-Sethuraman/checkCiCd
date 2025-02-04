@@ -18,12 +18,8 @@ const checkFunction = async () => {
         console.log("check Function");
         const joke = await getJoke();
         console.log(joke);
-        console.log("new Data");
-        console.log("Re-Check");
-        console.log("Once more");
-        
-        
-        
+        console.log("Fixed2");
+        console.log("Fixed2");
         if (typeof (joke) == "string") {
             response = {
                 status: "Success",
