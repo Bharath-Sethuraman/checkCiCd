@@ -21,7 +21,7 @@ jobs:
         id: list-prs
         uses: octokit/request-action@v2.x
         with:
-          route: GET /repos/{owner}/{repo}/pulls
+          route: GET /repos/Bharath-Sethuraman/checkCiCd/pulls
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
