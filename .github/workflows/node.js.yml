@@ -2,8 +2,6 @@ name: Auto Pull Request to Main
 
 on:
   push:
-    branches:
-      - '**'  # Trigger on push to any branch
     branches-ignore:
       - 'main'  # Ignore pushes to the main branch
 
