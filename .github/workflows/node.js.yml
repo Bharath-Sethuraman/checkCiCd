@@ -18,11 +18,11 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Auto-commit: Update from ${{ github.ref }}"
-          title: "Auto PR: Update from ${{ github.ref }}"
-          body: "This is an automated pull request created from ${{ github.ref }}."
+          commit-message: "Auto-commit: Update from ${{ github.ref_name }}"
+          title: "Auto PR: Update from ${{ github.ref_name }}"
+          body: "This is an automated pull request created from ${{ github.ref_name }}."
           base: main  # Target branch for the PR
-          branch: auto-pr-${{ github.ref }}  # Temporary branch for the PR
+          branch: auto-pr-${{ github.head_ref || github.ref_name }}  # Fix branch naming issue
           delete-branch: true  # Delete the temporary branch after merging
           draft: false  # Set to true if you want to create a draft PR
           labels: auto-pr  # Optional: Add a label to the PR
