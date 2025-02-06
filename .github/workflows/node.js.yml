@@ -1,31 +1,43 @@
-name: Auto Pull Request to Main
+name: Auto Merge to Main
 
 on:
   push:
-    branches-ignore:
-      - 'main'  # Ignore pushes to the main branch
+    branches_ignore:
+      - main # Don't trigger on pushes to main
 
 jobs:
   create-pull-request:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # Important for pull requests
 
       - name: Create Pull Request
-        id: create-pr
-        uses: peter-evans/create-pull-request@v4
+        id: create_pr
+        uses: peter-murray/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Auto-commit: Update from ${{ github.ref_name }}"
-          title: "Auto PR: Update from ${{ github.ref_name }}"
-          body: "This is an automated pull request created from ${{ github.ref_name }}."
-          base: main  # Target branch for the PR
-          branch: auto-pr-${{ github.head_ref || github.ref_name }}  # Fix branch naming issue
-          delete-branch: true  # Delete the temporary branch after merging
-          draft: false  # Set to true if you want to create a draft PR
-          labels: auto-pr  # Optional: Add a label to the PR
+          base: main # Target branch
+          head: ${{ github.ref }} # Current branch being pushed to
+          title: "Automated Merge: ${{ github.ref }} to main"
+          body: "Automated pull request created by GitHub Actions."
+          # Optional: Add labels, assignees, reviewers, etc.
+          # labels: bug, enhancement
+          # assignees: your_github_username
+          # reviewers: another_github_username
 
-      - name: Output PR URL
-        run: echo "Pull Request URL ${{ steps.create-pr.outputs.pull-request-url }}"
+      - name: Enable Auto Merge (if PR created)
+        if: steps.create_pr.outputs.pull_request_url
+        uses: actions/github-script@v6 # Use latest version
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pull_number = context.issue.number; // or from steps.create_pr.outputs.pull_request_number if available
+            return github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull_number,
+              merge_method: 'squash' // or 'merge' or 'rebase' - Choose your preferred method
+            });
