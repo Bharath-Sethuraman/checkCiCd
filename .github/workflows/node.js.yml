@@ -12,16 +12,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}  # Still needed for checkout
+
+      - name: Install gh CLI
+        run: |
+          curl -fsSL https://cli.github.com/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Create Pull Request (using gh CLI)
         id: create_pr
+        env:  # Set the GH_TOKEN environment variable
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create --base main --head ${{ github.ref }} --title "Automated Merge: ${{ github.ref }} to main" --body "Automated pull request created by GitHub Actions."
-          pr_number=$(gh pr list --head ${{ github.ref }} --base main --json number -q '.[0].number')
-          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT # Set output for next step
+          gh pr create --base main --head refs/heads/checkwithNew --title "Automated Merge: refs/heads/checkwithNew to main" --body "Automated pull request created by GitHub Actions."
+          pr_number=$(gh pr list --head refs/heads/checkwithNew --base main --json number -q '.[0].number')
+          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
 
       - name: Enable Auto Merge (if PR created)
         if: steps.create_pr.outputs.pr_number
+        env:  # Set the GH_TOKEN environment variable for merge as well
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge $pr_number --merge-method squash # or merge or rebase
+          gh pr merge $pr_number --merge-method squash
